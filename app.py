@@ -1,10 +1,12 @@
 from flask import Flask, request, jsonify
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token
+from flask_cors import CORS
 
 from user import User, get_user_by_email
 from movie_rec.svd_recommend import top_n_movie
 
 app = Flask(__name__)
+CORS(app) #spefic usgae for path : cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 app.config["JWT_SECRET_KEY"] = 'super-secret' # change in production
 
 jwt = JWTManager(app)
@@ -27,8 +29,8 @@ def login():
 
     user = get_user_by_email(email)
     if user:
-        test = True if password == user.get_password() else False
-        if test:
+        valid_user = True if password == user.get_password() else False
+        if valid_user:
             access_token = create_access_token(identity=email)
             return jsonify(message="Login succeeded!", access_token=access_token, full_name=user.get_name())
         return jsonify(message="Bad email or password"), 401
@@ -38,17 +40,27 @@ def login():
 
 @app.route("/register", methods=["POST"])
 def register():
-    email = request.form['email']
-    test_email_exist = get_user_by_email(email)
-    if test_email_exist:
-        return jsonify(message="That email already exists."), 409
+    first_name = last_name = user_name = email = password = ''
+
+    if request.is_json:
+        first_name = request.json['firstName']
+        last_name = request.json['lastName']
+        username = request.json['userName']
+        email = request.json['email']
+        password = request.json['password']
     else:
-        first_name = request.form['first_name']
-        last_name = request.form['last_name']
+        first_name = request.form['firstName']
+        last_name = request.form['lastName']
+        username = request.form['userName']
+        email = request.form['email']
         password = request.form['password']
-        user = User(first_name=first_name, last_name=last_name, email=email, password=password)
-        user.create_new_user()
-        return jsonify(message="User created successfully."), 201
+
+    email_exist = get_user_by_email(email)
+    if email_exist:
+        return jsonify(message="That email already exists. Please try with another email."), 409
+    user = User(first_name=first_name, last_name=last_name, username=username, email=email, password=password)
+    user.create_new_user()
+    return jsonify(message="User created successfully."), 201
 
 
 @app.route("/top-n-movie", methods=["GET"])
