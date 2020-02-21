@@ -1,6 +1,6 @@
 FROM alpine:latest
 MAINTAINER Amit Panda <amitpanda007@gmail.com>
-RUN apk add --no-cache python3-dev \
+RUN apk add --no-cache python3.6 \
     && pip3 install --upgrade pip
 WORKDIR /app
 COPY . /app
