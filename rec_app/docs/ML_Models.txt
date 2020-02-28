@@ -1,0 +1,5 @@
+# Information about ML Algorithms used for Recommendation.
+
+1. SVD Algorithm:
+-----------------
+

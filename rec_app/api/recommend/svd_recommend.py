@@ -1,15 +1,21 @@
+import os
 import pandas as pd
 import numpy as np
 from sklearn.decomposition import TruncatedSVD
 
 rating_columns = ['user_id', 'item_id', 'rating', 'timestamp']
-rating_frame = pd.read_csv('./movie_rec/u.data', sep='\t', names=rating_columns)
+
+cur_path = os.path.dirname(__file__)
+u_data_path = os.path.abspath(os.path.join(cur_path, "..", "..", "data\\u.data"))
+m_item_path = os.path.abspath(os.path.join(cur_path, "..", "..", "data\\u.item"))
+
+rating_frame = pd.read_csv(u_data_path, sep='\t', names=rating_columns)
 
 movie_columns = ['item_id', 'movie_title', 'release_date', 'video release date', 'IMDb URL', 'unknown', 'Action',
                  'Adventure', 'Animation', 'Childrens', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Fantasy',
                  'Film-Noir',
                  'Horror', 'Musical', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western']
-movies_frame = pd.read_csv('./movie_rec/u.item', sep='|', names=movie_columns, encoding='latin-1')
+movies_frame = pd.read_csv(m_item_path, sep='|', names=movie_columns, encoding='latin-1')
 movie_names = movies_frame[['item_id', 'movie_title']]
 
 combined_movie_rating = pd.merge(rating_frame, movie_names, on='item_id')
@@ -36,7 +42,7 @@ movie_list = list(movie_names)
 
 
 # TODO : change function to take input from user's movie choice
-def top_n_movie(source_movie: str):
+def svd_rec(source_movie: str):
     star_wars = movie_list.index('Star Wars (1977)')
     corr_star_wars = corr_matrix[star_wars]
     movie_recommend_on_source_movie = movie_names[(corr_star_wars < 1.0) & (corr_star_wars > 0.9)]
