@@ -8,7 +8,7 @@ from sqlalchemy.orm.exc import NoResultFound
 log = logging.getLogger(__name__)
 
 api = Api(version='1.0', title='Movie Recommender API',
-          description='A simple movie recommendation system of a Flask RestPlus powered API')
+          description='A simple movies recommendation system of a Flask RestPlus powered API')
 
 
 @api.errorhandler

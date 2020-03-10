@@ -1,0 +1,6 @@
+DELIMITER $$
+CREATE PROCEDURE getAllMovies()
+	BEGIN
+		SELECT DISTINCT movie_title FROM user_ratings;
+	END $$
+DELIMITER ;

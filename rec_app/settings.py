@@ -12,7 +12,14 @@ RESTPLUS_ERROR_404_HELP = False
 
 # SQLAlchemy settings
 SQLALCHEMY_DATABASE_URI = 'sqlite:///db.sqlite'
+SQLALCHEMY_DATABASE_URI_MYSQL = 'mysql+mysqldb://root:Pa55word@192.168.56.101:3306/recommend'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+# MySQL settings
+MYSQL_HOST ='192.168.56.101'
+MYSQL_DATABASE ='recommend'
+MYSQL_USER ='root'
+MYSQL_PASSWORD = 'Pa55word'
 
 # JWT setting
 JWT_SECRET_KEY = 'super-secret' # change in production

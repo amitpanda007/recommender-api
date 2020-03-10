@@ -26,7 +26,7 @@ combined_movie_rating_sorted = combined_movie_rating.groupby('item_id')['rating'
 ratings_crosstab = combined_movie_rating.pivot_table(values='rating', index='user_id', columns='movie_title',
                                                      fill_value=0)
 
-# Get the values of pivot table and transpose the matrix to have all the movie ratings in one list
+# Get the values of pivot table and transpose the matrix to have all the movies ratings in one list
 X = ratings_crosstab.values.T
 
 # Create TruncatedSVD out of the matrix value
@@ -36,12 +36,12 @@ resultant_matrix = SVD.fit_transform(X)
 # Create correlation matrix
 corr_matrix = np.corrcoef(resultant_matrix)
 
-# Get index of the movie and let the correlation index of movie similar
+# Get index of the movies and let the correlation index of movies similar
 movie_names = ratings_crosstab.columns
 movie_list = list(movie_names)
 
 
-# TODO : change function to take input from user's movie choice
+# TODO : change function to take input from user's movies choice
 def svd_rec(source_movie: str):
     star_wars = movie_list.index('Star Wars (1977)')
     corr_star_wars = corr_matrix[star_wars]

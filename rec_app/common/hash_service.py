@@ -2,10 +2,11 @@ import bcrypt as bc
 
 
 def encrypt(password):
-    passwd = password.encode()
-    return bc.hashpw(passwd, bc.gensalt())
+    password = password.encode()
+    return bc.hashpw(password, bc.gensalt())
 
 
 def verify(password, hashed):
-    passwd = password.encode()
-    return bc.checkpw(passwd, hashed)
+    password = password.encode()
+    hashed = hashed.encode()
+    return bc.checkpw(password, hashed)
