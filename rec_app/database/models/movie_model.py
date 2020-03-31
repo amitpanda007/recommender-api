@@ -7,7 +7,7 @@ class Movie(db.Model):
     movie_id = db.Column(db.Integer, nullable=False)
     movie_title = db.Column(db.String(120), nullable=False)
     imdb_url = db.Column(db.String(240), nullable=True)
-    genre = db.Column(db.String(50), nullable=True)
+    genre = db.Column(db.String(240), nullable=True)
     timestamp = db.Column(db.DateTime)
 
     @staticmethod

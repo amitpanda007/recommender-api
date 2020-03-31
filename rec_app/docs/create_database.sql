@@ -1,0 +1,1 @@
+CREATE SCHEMA `recommend` DEFAULT CHARACTER SET utf8 ;
