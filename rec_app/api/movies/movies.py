@@ -1,3 +1,4 @@
+import os
 import logging
 from flask import request
 from flask_restplus import Resource
@@ -20,7 +21,7 @@ class Movies(Resource):
         if movie_seq_from and movie_seq_to:
             proc_args = movie_seq_from, movie_seq_to
         else:
-            proc_args = 0, 10
+            proc_args = 1, 20
         db = MySQLDatabaseConnector()
         cursor = db.connect_db()
         cursor.callproc("getAllMovies", proc_args)
@@ -29,6 +30,21 @@ class Movies(Resource):
         for result in cursor.stored_results():
             all_movies = result.fetchall()
             for movies in all_movies:
-                movie_dict = {"movieName": movies[0], "imdbUrl": movies[1]}
+                movie_dict = {"movieName": movies[0], "imdbUrl": movies[1], "imageUrl": "", "movieSynopsis":""}
                 final_list.append(movie_dict)
         return final_list
+
+
+@ns.route("/count")
+class MoviesCount(Resource):
+    def get(self):
+        db = MySQLDatabaseConnector()
+        cursor = db.connect_db()
+
+        cur_path = os.path.dirname(__file__)
+        sql_file = os.path.abspath(os.path.join(cur_path, "..", "..", "database\\mysql_query\\movies_count.sql"))
+        for line in open(sql_file):
+            cursor.execute(line)
+            result = cursor.fetchone()[0]
+            print(result)
+            return {"totalMovies": result}
