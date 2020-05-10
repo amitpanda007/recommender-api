@@ -7,17 +7,37 @@ from flask_cors import CORS
 from rec_app import settings
 from rec_app.api.auth.authorization import ns as auth_namespace
 from rec_app.api.recommend.recommender import ns as rec_namespace
-from rec_app.api.movies.movies import ns as movie_namespace
+from rec_app.api.movies.movies import ns as movies_namespace
+from rec_app.api.movies.movie import ns as movie_namespace
+from rec_app.api.users.user import ns as user_namespace
 from rec_app.api.ratings.rating import ns as rating_namespace
 from rec_app.api.restplus import api
+from rec_app.task_queue.celery_config import celery, init_celery
 from rec_app.database import db, init_database, reset_database
 
 app = Flask(__name__)
+###############################
+# Logging configuration section
+###############################
 # logging_conf_path = os.path.normpath(os.path.join(os.path.dirname(__file__), '../logging.conf'))
 # logging.config.fileConfig(logging_conf_path)
 log = logging.getLogger(__name__)
+
+##################################
+# Web Token configuration section
+##################################
 jwt = JWTManager(app)
-CORS(app) #spefic usgae for path : cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+#####################################
+# Celery tasks configuration section
+#####################################
+# celery = make_celery(app)
+
+####################################################################################
+# CORS configuration section
+# spefic usgae for path : cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+####################################################################################
+CORS(app)
 
 
 def configure_app(flask_app):
@@ -29,6 +49,8 @@ def configure_app(flask_app):
     flask_app.config['RESTPLUS_MASK_SWAGGER'] = settings.RESTPLUS_MASK_SWAGGER
     flask_app.config['ERROR_404_HELP'] = settings.RESTPLUS_ERROR_404_HELP
     flask_app.config["JWT_SECRET_KEY"] = settings.JWT_SECRET_KEY
+    flask_app.config["CELERY_BROKER_URL"] = settings.CELERY_BROKER_URL
+    flask_app.config["CELERY_RESULT_BACKEND"] = settings.CELERY_RESULT_BACKEND
 
 
 def initialize_app(flask_app):
@@ -37,10 +59,14 @@ def initialize_app(flask_app):
     blueprint = Blueprint('api-v1', __name__, url_prefix='/api/v1')
     api.init_app(blueprint)
     api.add_namespace(auth_namespace)
+    api.add_namespace(user_namespace)
     api.add_namespace(rec_namespace)
+    api.add_namespace(movies_namespace)
     api.add_namespace(movie_namespace)
     api.add_namespace(rating_namespace)
     flask_app.register_blueprint(blueprint)
+
+    init_celery(celery, flask_app)
 
     db.init_app(flask_app)
     # reset_database(flask_app)

@@ -5,7 +5,7 @@ def get_user_by_email(email):
     """
     Returns user object for the provided email address
     :param email: String
-    :return: Object (User)
+    :return: Object (UserModel)
     """
     return USERS.get(email)
 

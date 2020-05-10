@@ -25,3 +25,8 @@ MYSQL_PASSWORD = 'Pa55word'
 
 # JWT setting
 JWT_SECRET_KEY = 'super-secret' # change in production
+
+
+#Celery config
+CELERY_BROKER_URL = 'redis://13.232.196.53:6379'
+CELERY_RESULT_BACKEND = 'redis://13.232.196.53:6379'

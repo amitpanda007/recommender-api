@@ -24,8 +24,8 @@ def load_rating_movie_data_from_file():
 def load_rating_movie_data_from_db():
     user_ratings_query = "SELECT USER_ID, MOVIE_ID, RATING FROM user_ratings ORDER BY USER_ID;"
     movies_query = "SELECT MOVIE_ID, MOVIE_TITLE, GENRE FROM movies;"
-    user_ratings = run_query(user_ratings_query)
-    movies = run_query(movies_query)
+    user_ratings = run_query(user_ratings_query, "fetch_all")
+    movies = run_query(movies_query, "fetch_all")
     ratings_df = pd.DataFrame(user_ratings, columns=['user_id', 'movie_id', 'rating'])
     movies_df = pd.DataFrame(movies, columns=['movie_id', 'movie_title', 'genre'])
     return ratings_df, movies_df

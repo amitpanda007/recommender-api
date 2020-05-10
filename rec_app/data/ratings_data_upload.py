@@ -5,6 +5,11 @@ import csv
 from rec_app.database.db_connector import MySQLDatabaseConnector
 from rec_app.common.imdb_service import extract_movie_url_genre
 
+MOVIE = "movie"
+RATING = "rating"
+USER = "user"
+RATING_SOURCE = "IMPORT"
+
 
 def format_unix_time(time):
     return datetime.datetime.utcfromtimestamp(int(time)).strftime('%Y-%m-%d %H:%M:%S')
@@ -82,33 +87,76 @@ def gather_data_processed():
     return ratings_list[1:], movies_list[1:]
 
 
-def load_data_to_db():
+def load_user_from_db():
+    user_list = []
+    user_query = """SELECT DISTINCT user_id FROM user_ratings ORDER BY user_id"""
+    db, cursor = get_cursor()
+    cursor.execute(user_query)
+    users = cursor.fetchall()
+    for user in users:
+        user_list.append(user[0])
+    return user_list
+
+
+def load_data_to_db(data_type=None):
     # ratings_list, movies_list = gather_data_from_csv()
     ratings_list, movies_list = gather_data_processed()
-    db = MySQLDatabaseConnector()
-    cursor = db.connect_db()
+    db, cursor = get_cursor()
 
-    for movie in movies_list:
-        movie = [int(movie[0]), str(movie[1]), str(movie[2]), str(movie[3])]
-        movie_insert_query = """INSERT INTO movies (movie_id, movie_title, imdb_url, genre, timestamp)
-                               VALUES
-                               ({}, "{}", "{}", "{}", "{}") """.format(movie[0], movie[1], movie[2], movie[3],
-                                                                       datetime.datetime.utcnow())
-        cursor.execute(movie_insert_query)
-    db.get_connection().commit()
+    if data_type == MOVIE or data_type is None:
+        for movie in movies_list:
+            movie = [int(movie[0]), str(movie[1]), str(movie[2]), str(movie[3])]
+            movie_insert_query = """INSERT INTO movies (movie_id, movie_title, imdb_url, genre, timestamp)
+                                   VALUES
+                                   ({}, "{}", "{}", "{}", "{}") """.format(movie[0], movie[1], movie[2], movie[3],
+                                                                           datetime.datetime.utcnow())
+            cursor.execute(movie_insert_query)
+        db.get_connection().commit()
 
-    for rating in ratings_list:
-        rating = [int(rating[0]), str(rating[1]), str(rating[2]), str(rating[3])]
-        rating_insert_query = """INSERT INTO user_ratings (user_id, movie_id, rating, timestamp)
-                                       VALUES
-                                       ({}, {}, {}, "{}") """.format(rating[0], rating[1], rating[2], rating[3])
+    if data_type == RATING or data_type is None:
 
-        cursor.execute(rating_insert_query)
-    db.get_connection().commit()
+        for rating in ratings_list:
+            rating = [int(rating[0]), str(rating[1]), str(rating[2]), str(rating[3])]
+            rating_insert_query = """INSERT INTO user_ratings (user_id, movie_id, rating, rating_source, timestamp)
+                                           VALUES
+                                           ({}, {}, {}, "{}") """.format(rating[0], rating[1], rating[2], RATING_SOURCE, rating[3])
+
+            cursor.execute(rating_insert_query)
+        db.get_connection().commit()
+
+    if data_type == USER or data_type is None:
+        users_list = load_user_from_db()
+        index = 0
+        first_name = "Test{}"
+        last_name = "UserModel"
+        username = "testuser{}"
+        email = "testuser{}@test.com"
+        password_hash = "password"
+        preferred_genres = "Null"
+        initial_setup = False
+        for user in users_list:
+            user_insert_query = """INSERT INTO users (user_id, first_name, last_name, username, email, password_hash, 
+                                        preferred_genres, initial_setup)
+                                        VALUES
+                                        ({}, "{}", "{}", "{}", "{}", "{}", {}, {}) """.format(user, first_name.format(index), last_name,
+                                        username.format(index), email.format(index), password_hash, preferred_genres, initial_setup)
+
+            # print(user_insert_query)
+            cursor.execute(user_insert_query)
+            index += 1
+        db.get_connection().commit()
+
     db.close_db()
 
 
+def get_cursor():
+    db = MySQLDatabaseConnector()
+    cursor = db.connect_db()
+    return db, cursor
+
+
 if __name__ == "__main__":
-    load_data_to_db()
+    pass
+    # load_data_to_db(USER)
     # load_data_to_csv()
     # gather_data_processed()

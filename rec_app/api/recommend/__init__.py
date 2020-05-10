@@ -1,0 +1,1 @@
+from rec_app.api.recommend.recommender import RecEnum
