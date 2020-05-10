@@ -1,6 +1,6 @@
 import traceback
 
-from imdb import IMDb
+from imdb import IMDb, IMDbDataAccessError
 
 ia = IMDb()
 
@@ -64,9 +64,9 @@ def extract_movie_story_line(movie_name, _movie=None):
 def get_movie_obj(movie_id):
     try:
         return ia.get_movie(movie_id)
-    except:
+    except (RuntimeError, Exception, IMDbDataAccessError):
         print("Error occurred while searching for movie",movie_id)
-        traceback.print_stack()
+        # traceback.print_stack()
 
 
 def extract_movie_info(movie_obj, search_name):
@@ -113,9 +113,9 @@ def extract_movie_info(movie_obj, search_name):
                 return movie_obj.get('rating')
 
     except Exception as E:
-        print(E)
-        traceback.print_stack()
-        return ""
+        # print(E)
+        # traceback.print_stack()
+        print("Error occurred while searching for movie")
 
 
 if __name__ == "__main__":

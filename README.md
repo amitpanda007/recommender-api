@@ -1,5 +1,5 @@
 # Prerequisite
-pip install flask
+pip install -r requirements.txt
 
 # App Setup & Run on Windows
 set FLASK_APP=app.py
