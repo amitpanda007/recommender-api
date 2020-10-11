@@ -116,11 +116,11 @@ def load_data_to_db(data_type=None):
     if data_type == RATING or data_type is None:
 
         for rating in ratings_list:
-            rating = [int(rating[0]), str(rating[1]), str(rating[2]), str(rating[3])]
+            rating_data = [int(rating[0]), str(rating[1]), str(rating[2]), str(rating[3])]
             rating_insert_query = """INSERT INTO user_ratings (user_id, movie_id, rating, rating_source, timestamp)
                                            VALUES
-                                           ({}, {}, {}, "{}") """.format(rating[0], rating[1], rating[2], RATING_SOURCE, rating[3])
-
+                                           ({}, {}, {}, "{}", "{}") """.format(rating_data[0], rating_data[1], rating_data[2], RATING_SOURCE, rating_data[3])
+            # print(rating_insert_query)
             cursor.execute(rating_insert_query)
         db.get_connection().commit()
 
@@ -157,6 +157,6 @@ def get_cursor():
 
 if __name__ == "__main__":
     pass
-    # load_data_to_db(USER)
+    # load_data_to_db(RATING)
     # load_data_to_csv()
     # gather_data_processed()

@@ -9,7 +9,7 @@ class UserRatingsModel(db.Model):
     user_id = db.Column(db.Integer, nullable=False)
     movie_id = db.Column(db.Integer, nullable=False)
     rating = db.Column(db.Integer, nullable=True)
-    rating_source = db.Column(db.String(5), nullable=True)
+    rating_source = db.Column(db.String(10), nullable=True)
     timestamp = db.Column(db.DateTime)
 
     @staticmethod

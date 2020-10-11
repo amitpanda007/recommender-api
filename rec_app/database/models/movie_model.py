@@ -10,7 +10,7 @@ class MoviesModel(db.Model):
     imdb_url = db.Column(db.String(240), nullable=True)
     genre = db.Column(db.String(240), nullable=True)
     cover_image = db.Column(db.String(240), nullable=True)
-    story_line = db.Column(db.String(240), nullable=True)
+    story_line = db.Column(db.String(1000), nullable=True)
     timestamp = db.Column(db.DateTime)
 
     @staticmethod

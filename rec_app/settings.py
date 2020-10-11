@@ -12,13 +12,13 @@ RESTPLUS_ERROR_404_HELP = False
 
 # SQLAlchemy settings
 SQLALCHEMY_DATABASE_URI = 'sqlite:///db.sqlite'
-SQLALCHEMY_DATABASE_URI_MYSQL = 'mysql+mysqldb://root:Pa55word@13.232.196.53:3306/recommend'
+SQLALCHEMY_DATABASE_URI_MYSQL = 'mysql+mysqldb://root:Pa55word@127.0.0.1:3306/recommend'
 #SQLALCHEMY_DATABASE_URI_MYSQL = 'mysql+mysqldb://root:Pa55word@192.168.56.101:3306/recommend'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # MySQL settings
 # MYSQL_HOST ='192.168.56.101'
-MYSQL_HOST ='13.232.196.53'
+MYSQL_HOST ='127.0.0.1'
 MYSQL_DATABASE ='recommend'
 MYSQL_USER ='root'
 MYSQL_PASSWORD = 'Pa55word'
@@ -28,5 +28,5 @@ JWT_SECRET_KEY = 'super-secret' # change in production
 
 
 #Celery config
-CELERY_BROKER_URL = 'redis://13.232.196.53:6379'
-CELERY_RESULT_BACKEND = 'redis://13.232.196.53:6379'
+CELERY_BROKER_URL = 'redis://13.234.20.129:6379'
+CELERY_RESULT_BACKEND = 'redis://13.234.20.129:6379'
