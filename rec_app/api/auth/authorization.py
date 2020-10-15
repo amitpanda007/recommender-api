@@ -82,7 +82,7 @@ class Register(Resource):
         user = UserModel.query.filter_by(email=email).first()
         RecommendationsModel.init_recommendation(user.user_id, RecommendationsEnum.MATRIX_FACTORIZATION, RecommendationsEnum.EMPTY_STATUS, None)
         RecommendationsModel.init_recommendation(user.user_id, RecommendationsEnum.SINGULAR_VALUE_DECOMPOSITION, RecommendationsEnum.EMPTY_STATUS, None)
-        return {"message": "UserModel created successfully."}, 201
+        return {"message": "User created successfully."}, 201
 
 
 @ns.route("/refresh")

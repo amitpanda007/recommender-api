@@ -2,20 +2,22 @@ import logging
 import random
 import traceback
 
+from flask import request
 from flask_restplus import Resource
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
+from rec_app.api.recommend.logic.svd import recommend_top_5
 from rec_app.api.restplus import api
 from rec_app.api.recommend.logic.matrix_factorization import recommend_new_user
 from rec_app.database import db
+from rec_app.database.db_connector import run_procedure, run_query
 from rec_app.database.models.movie_model import MoviesModel
 from rec_app.database.models.recommendations_model import RecommendationsModel, RecommendationsEnum
-from rec_app.database.models.user_ratings_model import UserRatingsModel
+from rec_app.database.models.user_model import UserModel
 from rec_app.task_queue.tasks.test_task import add_together
 
 log = logging.getLogger(__name__)
 
-# ns = Namespace('auth', description='Operations related to user authentication')
 ns = api.namespace('recommend', description='Operations related to recommendation')
 
 
@@ -24,6 +26,15 @@ class RecEnum:
     REG_USER_TYPE = "registered"
     RTNG_SRC_DUMMY = "DUMMY"
     RTNG_SRC_WEB = "WEB"
+
+
+"""
+Available API,Methods
+1. /anonymous : get
+2. /movies : get
+3. /movies/svd : get
+4. /genre : get
+"""
 
 
 @ns.route("/anonymous")
@@ -60,7 +71,7 @@ class MoviesRecommend(Resource):
                 movie_dict = {"movieName": movie.movie_title, "movieId": movie.movie_id}
                 movies_recommended.append(movie_dict)
 
-            response = {"recommend" : movies_recommended, "message": "Please find your recommendation"}
+            response = {"recommend": movies_recommended, "message": "Please find your recommendation"}
             return response
 
         elif usr_rec.rec_avl_status == RecommendationsEnum.EMPTY_STATUS:
@@ -97,9 +108,70 @@ class MoviesRecommend(Resource):
         return response
 
 
+@ns.route("/movies/svd")
+class MoviesRecommend(Resource):
+
+    @jwt_required
+    def post(self):
+        current_user = get_jwt_identity()
+        user_id = current_user['user_id']
+
+        try:
+            rec_type = request.json['type']
+        except KeyError:
+            msg = {"error": "'type' parameter is missing in request"}
+            return msg, 400
+
+        # movie provided by user to show recommendation
+        if rec_type == "movie":
+            try:
+                movie_name = request.json['movie']
+            except KeyError:
+                msg = {"error": "'movie' parameter is missing in request"}
+                return msg, 400
+
+            rec_movies = recommend_top_5(movie_name)
+            response = {"recommend": rec_movies, "message": "Please find your recommendation"}
+            return response, 200
+
+        # gather user provided genre selections & create recommendation based on those
+        elif rec_type == "genre":
+            usr = UserModel.query.filter_by(user_id=user_id).first()
+            genres = usr.preferred_genres.split(",")
+
+            recommend_dict = {}
+            for genre in genres:
+                proc_args = (genre, )
+                top_rtd_mov_gnr = run_procedure('highest_rated_movies_for_genre', proc_args, 'fetch_one')[0]
+                rec_movies = recommend_top_5(top_rtd_mov_gnr)
+                recommend_dict[genre] = rec_movies
+
+            response = {"recommend": recommend_dict, "message": "Please find your recommendation"}
+            return response, 200
+
+        # get user rated movies & provide recommendation based on those
+        elif rec_type == "rated":
+            rated_mov_qry = """SELECT movie_title,movie_id FROM movies WHERE movie_id IN(
+                               SELECT movie_id FROM user_ratings WHERE user_id={user_id} ORDER BY rating) LIMIT 5""".format(user_id=user_id)
+            user_rtd_movies = run_query(rated_mov_qry, "fetch_all")
+
+            recommend_dict = {}
+            for movie in user_rtd_movies:
+                mov= movie[0]
+                rec_movies = recommend_top_5(mov)
+                recommend_dict[mov] = rec_movies
+
+            response = {"recommend": recommend_dict, "message": "Please find your recommendation"}
+            return response, 200
+
+        else:
+            msg = {"error": "unsupported 'type' parameter in request"}
+            return msg, 400
+
+
 @ns.route("/genre")
 class GenreRecommend(Resource):
 
     def get(self):
-        add_together.delay(9999,235984398543)
+        add_together.delay(9999, 235984398543)
         return "Done"

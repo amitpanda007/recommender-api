@@ -9,7 +9,7 @@ from rec_app.common.hash_service import encrypt, verify
 from rec_app.database.db_connector import run_query
 from rec_app.database.models.user_ratings_model import UserRatingsModel
 
-USER_ID_START_SEQUENCE = 1
+USER_ID_START_SEQUENCE = 1000
 
 
 class UserModel(db.Model):
