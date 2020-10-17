@@ -3,7 +3,7 @@ import numpy as np
 import os
 
 from rec_app.api.recommend.logic.utilities import low_rank_matrix_factorization
-from rec_app.database.db_connector import run_query
+from rec_app.database.db_connector import run_query, FetchType
 
 # Pandas Options to see rows & columns
 pd.set_option('display.max_rows', 1000)
@@ -26,8 +26,8 @@ def limited_load_rating_movie_data_from_db():
                       546,95,768,277,234,246,98,193,88,194,1081,603,796,32,16,304,979,564,327,201,1137,241,4,332,100)
     user_ratings_query = "SELECT USER_ID, MOVIE_ID, RATING FROM user_ratings WHERE movie_id in {} ORDER BY USER_ID;".format(limited_movies)
     movies_query = "SELECT MOVIE_ID, MOVIE_TITLE, GENRE FROM movies WHERE movie_id in {} ;".format(limited_movies)
-    user_ratings = run_query(user_ratings_query, "fetch_all")
-    movies = run_query(movies_query, "fetch_all")
+    user_ratings = run_query(user_ratings_query, FetchType.FETCH_ALL)
+    movies = run_query(movies_query, FetchType.FETCH_ALL)
     ratings_df = pd.DataFrame(user_ratings, columns=['user_id', 'movie_id', 'value'])
     ratings_df['movie_id'] = ratings_df['movie_id'].astype(float)
     ratings_df['value'] = ratings_df['value'].astype(float)
@@ -39,8 +39,8 @@ def limited_load_rating_movie_data_from_db():
 def load_rating_movie_data_from_db():
     user_ratings_query = "SELECT USER_ID, MOVIE_ID, RATING FROM user_ratings ORDER BY USER_ID;"
     movies_query = "SELECT MOVIE_ID, MOVIE_TITLE, GENRE FROM movies;"
-    user_ratings = run_query(user_ratings_query, "fetch_all")
-    movies = run_query(movies_query, "fetch_all")
+    user_ratings = run_query(user_ratings_query, FetchType.FETCH_ALL)
+    movies = run_query(movies_query, FetchType.FETCH_ALL)
     ratings_df = pd.DataFrame(user_ratings, columns=['user_id', 'movie_id', 'value'])
     ratings_df['movie_id'] = ratings_df['movie_id'].astype(float)
     ratings_df['value'] = ratings_df['value'].astype(float)

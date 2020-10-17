@@ -1,17 +1,25 @@
 from mysql.connector import connect, Error
 from rec_app import settings
 
+from enum import Enum
+
+
+class FetchType(Enum):
+    FETCH_ALL = "fetch_all"
+    FETCH_ONE = "fetch_one"
+
 
 def run_query(query, fetch_type):
     try:
         db = MySQLDatabaseConnector()
         cursor = db.connect_db()
         cursor.execute(query)
-        if fetch_type == "fetch_one":
+        if fetch_type == FetchType.FETCH_ONE:
             result = cursor.fetchone()[0]
-        if fetch_type == "fetch_all":
+            return result
+        if fetch_type == FetchType.FETCH_ALL:
             result = cursor.fetchall()
-        return result
+            return result
     except Error as e:
         print(e)
 
@@ -33,11 +41,12 @@ def run_procedure(proc_name, proc_args, fetch_type):
         cursor = db.connect_db()
         cursor.callproc(proc_name, proc_args)
         for result in cursor.stored_results():
-            if fetch_type == "fetch_one":
+            if fetch_type == FetchType.FETCH_ONE:
                 proc_result = result.fetchone()
-            if fetch_type == "fetch_all":
+                return proc_result
+            if fetch_type == FetchType.FETCH_ALL:
                 proc_result = result.fetchall()
-        return proc_result
+                return proc_result
     except Error as e:
         print(e)
 
@@ -69,4 +78,3 @@ class MySQLDatabaseConnector(object):
     def close_db(self):
         if self._connection.is_connected():
             self._connection.close()
-

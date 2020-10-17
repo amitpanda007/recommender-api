@@ -10,7 +10,7 @@ from rec_app.api.recommend.logic.svd import recommend_top_5
 from rec_app.api.restplus import api
 from rec_app.api.recommend.logic.matrix_factorization import recommend_new_user
 from rec_app.database import db
-from rec_app.database.db_connector import run_procedure, run_query
+from rec_app.database.db_connector import run_procedure, run_query, FetchType
 from rec_app.database.models.movie_model import MoviesModel
 from rec_app.database.models.recommendations_model import RecommendationsModel, RecommendationsEnum
 from rec_app.database.models.user_model import UserModel
@@ -130,8 +130,9 @@ class MoviesRecommend(Resource):
                 msg = {"error": "'movie' parameter is missing in request"}
                 return msg, 400
 
-            rec_movies = recommend_top_5(movie_name)
-            response = {"recommend": rec_movies, "message": "Please find your recommendation"}
+            print("Searching recommendation for movie: {}".format(movie_name))
+            top_5_rec_movies = recommend_top_5(movie_name)
+            response = {"recommend": top_5_rec_movies, "message": "Please find your recommendation"}
             return response, 200
 
         # gather user provided genre selections & create recommendation based on those
@@ -139,29 +140,35 @@ class MoviesRecommend(Resource):
             usr = UserModel.query.filter_by(user_id=user_id).first()
             genres = usr.preferred_genres.split(",")
 
-            recommend_dict = {}
+            rec_movies = []
             for genre in genres:
+                recommend_dict = {}
                 proc_args = (genre, )
-                top_rtd_mov_gnr = run_procedure('highest_rated_movies_for_genre', proc_args, 'fetch_one')[0]
-                rec_movies = recommend_top_5(top_rtd_mov_gnr)
-                recommend_dict[genre] = rec_movies
+                top_rtd_mov_gnr = run_procedure('highest_rated_movies_for_genre', proc_args, FetchType.FETCH_ONE)[0]
+                top_5_rec_movies = recommend_top_5(top_rtd_mov_gnr)
+                recommend_dict["genre"] = genre
+                recommend_dict["recMovies"] = top_5_rec_movies
+                rec_movies.append(recommend_dict)
 
-            response = {"recommend": recommend_dict, "message": "Please find your recommendation"}
+            response = {"recommend": rec_movies, "message": "Please find your recommendation based on Genre"}
             return response, 200
 
         # get user rated movies & provide recommendation based on those
         elif rec_type == "rated":
             rated_mov_qry = """SELECT movie_title,movie_id FROM movies WHERE movie_id IN(
                                SELECT movie_id FROM user_ratings WHERE user_id={user_id} ORDER BY rating) LIMIT 5""".format(user_id=user_id)
-            user_rtd_movies = run_query(rated_mov_qry, "fetch_all")
+            user_rtd_movies = run_query(rated_mov_qry, FetchType.FETCH_ALL)
 
-            recommend_dict = {}
+            rec_movies = []
             for movie in user_rtd_movies:
+                recommend_dict = {}
                 mov= movie[0]
-                rec_movies = recommend_top_5(mov)
-                recommend_dict[mov] = rec_movies
+                top_5_rec_movies = recommend_top_5(mov)
+                recommend_dict["rated_movie"] = movie
+                recommend_dict["recMovies"] = top_5_rec_movies
+                rec_movies.append(recommend_dict)
 
-            response = {"recommend": recommend_dict, "message": "Please find your recommendation"}
+            response = {"recommend": rec_movies, "message": "Please find your recommendation based on Rated"}
             return response, 200
 
         else:
