@@ -6,7 +6,7 @@ class MoviesModel(db.Model):
     __tablename__ = 'movies'
     id = db.Column(db.Integer, primary_key=True)
     movie_id = db.Column(db.Integer, nullable=False)
-    movie_title = db.Column(db.String(120), nullable=False)
+    movie_title = db.Column(db.String(500), nullable=False)
     imdb_url = db.Column(db.String(240), nullable=True)
     genre = db.Column(db.String(240), nullable=True)
     cover_image = db.Column(db.String(240), nullable=True)

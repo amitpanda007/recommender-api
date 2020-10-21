@@ -71,20 +71,24 @@ def load_data_to_csv():
             wr.writerow(movie)
 
 
-def gather_data_processed():
+def gather_data_processed(data_type=None, file_path=None):
     movies_list = []
-    with open("movies_list_processed.csv", newline='') as f1:
-        movie_reader = csv.reader(f1, delimiter=',')
-        for row in movie_reader:
-            movies_list.append(row)
-
     ratings_list = []
-    with open("ratings_list_processed.csv", newline='') as f2:
-        rating_reader = csv.reader(f2, delimiter=',')
-        for row in rating_reader:
-            ratings_list.append(row)
+    if data_type == MOVIE:
+        path = "movies_list_processed.csv" if file_path is None else file_path
+        with open(path, newline='', encoding='latin-1') as f1:
+            movie_reader = csv.reader(f1, delimiter=',')
+            for row in movie_reader:
+                movies_list.append(row)
+        return movies_list[1:]
 
-    return ratings_list[1:], movies_list[1:]
+    elif data_type == RATING:
+        path = "ratings_list_processed.csv" if file_path is None else file_path
+        with open(path, newline='', encoding='utf-8') as f2:
+            rating_reader = csv.reader(f2, delimiter=',')
+            for row in rating_reader:
+                ratings_list.append(row)
+        return ratings_list[1:]
 
 
 def load_user_from_db():
@@ -98,33 +102,41 @@ def load_user_from_db():
     return user_list
 
 
-def load_data_to_db(data_type=None):
+def load_data_to_db(load_type=None, file_path=None):
     # ratings_list, movies_list = gather_data_from_csv()
-    ratings_list, movies_list = gather_data_processed()
     db, cursor = get_cursor()
 
-    if data_type == MOVIE or data_type is None:
+    if load_type == MOVIE:
+        movies_list = gather_data_processed(data_type=load_type, file_path=file_path)
         for movie in movies_list:
-            movie = [int(movie[0]), str(movie[1]), str(movie[2]), str(movie[3])]
+            movie_id = int(movie[0])
+            movie_title = str(movie[1]).replace('"','')
+            imdb_url = str(movie[2])
+            genre = str(movie[3])
+
+            if "[" in genre:
+                genre = genre.replace("[","").replace("]","").replace(" ","").replace("'","")
+
             movie_insert_query = """INSERT INTO movies (movie_id, movie_title, imdb_url, genre, timestamp)
                                    VALUES
-                                   ({}, "{}", "{}", "{}", "{}") """.format(movie[0], movie[1], movie[2], movie[3],
+                                   ({}, "{}", "{}", "{}", "{}") """.format(movie_id, movie_title, imdb_url, genre,
                                                                            datetime.datetime.utcnow())
+            # print(movie_insert_query)
             cursor.execute(movie_insert_query)
         db.get_connection().commit()
 
-    if data_type == RATING or data_type is None:
+    if load_type == RATING:
+        ratings_list = gather_data_processed(data_type=load_type, file_path=file_path)
 
         for rating in ratings_list:
             rating_data = [int(rating[0]), str(rating[1]), str(rating[2]), str(rating[3])]
             rating_insert_query = """INSERT INTO user_ratings (user_id, movie_id, rating, rating_source, timestamp)
                                            VALUES
                                            ({}, {}, {}, "{}", "{}") """.format(rating_data[0], rating_data[1], rating_data[2], RATING_SOURCE, rating_data[3])
-            # print(rating_insert_query)
             cursor.execute(rating_insert_query)
         db.get_connection().commit()
 
-    if data_type == USER or data_type is None:
+    if load_type == USER:
         users_list = load_user_from_db()
         index = 0
         first_name = "Test{}"
@@ -139,9 +151,9 @@ def load_data_to_db(data_type=None):
                                         preferred_genres, initial_setup)
                                         VALUES
                                         ({}, "{}", "{}", "{}", "{}", "{}", {}, {}) """.format(user, first_name.format(index), last_name,
-                                        username.format(index), email.format(index), password_hash, preferred_genres, initial_setup)
+                                                                                        username.format(index), email.format(index),
+                                                                                        password_hash, preferred_genres, initial_setup)
 
-            # print(user_insert_query)
             cursor.execute(user_insert_query)
             index += 1
         db.get_connection().commit()
@@ -156,7 +168,7 @@ def get_cursor():
 
 
 if __name__ == "__main__":
-    pass
-    # load_data_to_db(RATING)
+    load_data_to_db(load_type=MOVIE, file_path="F:\\CODING\\PYTHON\\IMDB_Data_Load\\dump\\processed_movie.csv")
     # load_data_to_csv()
     # gather_data_processed()
+    pass

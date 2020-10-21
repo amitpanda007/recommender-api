@@ -162,7 +162,7 @@ class MoviesRecommend(Resource):
             rec_movies = []
             for movie in user_rtd_movies:
                 recommend_dict = {}
-                mov= movie[0]
+                mov = movie[0]
                 top_5_rec_movies = recommend_top_5(mov)
                 recommend_dict["rated_movie"] = movie
                 recommend_dict["recMovies"] = top_5_rec_movies
