@@ -4,7 +4,6 @@ db = SQLAlchemy()
 
 
 def reset_database():
-    from rec_app.database.models.user_ratings_model import UserRatingsModel
     db.drop_all()
     db.create_all()
 

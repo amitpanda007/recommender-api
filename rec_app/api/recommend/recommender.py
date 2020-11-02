@@ -145,6 +145,7 @@ class MoviesRecommend(Resource):
                 recommend_dict = {}
                 proc_args = (genre, )
                 top_rtd_mov_gnr = run_procedure('highest_rated_movies_for_genre', proc_args, FetchType.FETCH_ONE)[0]
+                print(top_rtd_mov_gnr)
                 top_5_rec_movies = recommend_top_5(top_rtd_mov_gnr)
                 recommend_dict["genre"] = genre
                 recommend_dict["recMovies"] = top_5_rec_movies

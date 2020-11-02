@@ -22,6 +22,7 @@ def run_query(query, fetch_type):
             return result
     except Error as e:
         print(e)
+        return None
 
 
 def update_db(query):

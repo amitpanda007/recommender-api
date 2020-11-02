@@ -30,7 +30,11 @@ class Movies(Resource):
         movie_name = movie_info.movie_title
         genre = movie_info.genre
         imdb_url = movie_info.imdb_url
+        release_year = movie_info.release_year
         cover_image = movie_info.cover_image
+        imdb_votes = movie_info.imdb_votes
+        imdb_rating = movie_info.imdb_rating
+        user_rating = movie_info.user_rating
         story_line = movie_info.story_line
 
         if cover_image is None:
@@ -60,16 +64,11 @@ class Movies(Resource):
             cover_image_new = cover_image.split("_V1")
             cover_image = cover_image_new[0] + "_V1"
 
-        # Gathering ratings data from database. Then calculating average ratings from all the ratings.
-        # ratings = run_procedure("getMovieRating", prc_args, "fetch_all")
-        user_ratings = UserRatingsModel.query.filter_by(movie_id=movie_id)
-        total_rating = 0
-        total_items = 0
-        for rating_obj in user_ratings:
-            total_rating += rating_obj.rating
-            total_items += 1
-        average_rating = total_rating / total_items
+        if user_rating is not None:
+            user_rating = int(user_rating) * 2
+
         movie = {"movieName": movie_name, "genre": genre, "imdbUrl": imdb_url, "coverImage": cover_image,
-                 "storyLine": story_line, "rating": round(average_rating,1)}
+                 "storyLine": story_line, "imdbRating": imdb_rating, "userRating": user_rating,
+                 "releaseYear": release_year, "imdbVotes": imdb_votes}
 
         return movie

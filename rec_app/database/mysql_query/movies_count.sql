@@ -1,1 +1,1 @@
-SELECT COUNT(*) FROM movies;
+SELECT MAX(ID) FROM movies;

@@ -56,7 +56,7 @@ def extract_movie_story_line(movie_name, _movie=None):
             elif movie_obj.has_key('plot'):
                 return movie_obj.get('plot')
         except KeyError:
-            traceback.print_stack()
+            # traceback.print_stack()
             return ""
     return ""
 
@@ -65,8 +65,8 @@ def get_movie_obj(movie_id):
     try:
         return ia.get_movie(movie_id)
     except (RuntimeError, Exception, IMDbDataAccessError):
-        print("Error occurred while searching for movie",movie_id)
-        # traceback.print_stack()
+        pass
+        # print("Error occurred while searching for movie",movie_id)
 
 
 def extract_movie_info(movie_obj, search_name):
@@ -113,9 +113,8 @@ def extract_movie_info(movie_obj, search_name):
                 return movie_obj.get('rating')
 
     except Exception as E:
-        # print(E)
-        # traceback.print_stack()
-        print("Error occurred while searching for movie")
+        # print("Error occurred while searching for movie")
+        pass
 
 
 if __name__ == "__main__":

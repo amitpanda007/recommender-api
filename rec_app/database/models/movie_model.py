@@ -7,10 +7,15 @@ class MoviesModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     movie_id = db.Column(db.Integer, nullable=False)
     movie_title = db.Column(db.String(500), nullable=False)
+    release_year = db.Column(db.Integer, nullable=True)
     imdb_url = db.Column(db.String(240), nullable=True)
+    imdb_rating = db.Column(db.Integer, nullable=True)
+    imdb_votes = db.Column(db.Integer, nullable=True)
+    user_rating = db.Column(db.Integer, nullable=True)
+    user_votes = db.Column(db.Integer, nullable=True)
     genre = db.Column(db.String(240), nullable=True)
-    cover_image = db.Column(db.String(240), nullable=True)
-    story_line = db.Column(db.String(1000), nullable=True)
+    cover_image = db.Column(db.String(500), nullable=True)
+    story_line = db.Column(db.String(20000), nullable=True)
     timestamp = db.Column(db.DateTime)
 
     @staticmethod

@@ -1,6 +1,8 @@
 import datetime
 import pandas as pd
 import csv
+import re
+import time
 
 from rec_app.database.db_connector import MySQLDatabaseConnector
 from rec_app.common.imdb_service import extract_movie_url_genre
@@ -107,23 +109,48 @@ def load_data_to_db(load_type=None, file_path=None):
     db, cursor = get_cursor()
 
     if load_type == MOVIE:
+        index = 1
+        start_time = time.time()
         movies_list = gather_data_processed(data_type=load_type, file_path=file_path)
         for movie in movies_list:
+            print("Current running Index: {}".format(index))
             movie_id = int(movie[0])
             movie_title = str(movie[1]).replace('"','')
             imdb_url = str(movie[2])
             genre = str(movie[3])
+            cover_image = 'Null' if str(movie[4]) == "0" else str(movie[4])
+            release_year = int(float(movie[5]))
+            imdb_votes = int(float(movie[6]))
+            imdb_rating = int(float(movie[7]))
+            user_rating = 'Null'
+            user_votes = 'Null'
+            story_line = 'Null' if str(movie[8]) == "0" else str(movie[8])
+            timestamp = datetime.datetime.utcnow()
 
             if "[" in genre:
-                genre = genre.replace("[","").replace("]","").replace(" ","").replace("'","")
+                genre = re.sub(r'\[|\]|\"|\'| ', "", genre)
 
-            movie_insert_query = """INSERT INTO movies (movie_id, movie_title, imdb_url, genre, timestamp)
-                                   VALUES
-                                   ({}, "{}", "{}", "{}", "{}") """.format(movie_id, movie_title, imdb_url, genre,
-                                                                           datetime.datetime.utcnow())
+            if "[" in story_line or "]" in story_line or '"' in story_line:
+                story_line = re.sub(r'\[|\]|\"', "", story_line)
+
+            if story_line != 'Null':
+                story_line= '"{}"'.format(story_line)
+
+            if cover_image != 'Null':
+                cover_image = '"{}"'.format(cover_image)
+
+            movie_insert_query = """INSERT INTO movies (movie_id, movie_title, release_year, imdb_url, imdb_rating, 
+                                    imdb_votes, user_rating, user_votes, genre, cover_image, story_line, timestamp)
+                                   VALUES ({}, "{}", {}, "{}", {}, {}, {}, {}, "{}", {}, {}, "{}") """.format(movie_id,
+                                    movie_title, release_year, imdb_url, imdb_rating, imdb_votes, user_rating,
+                                    user_votes, genre, cover_image, story_line, timestamp)
+
             # print(movie_insert_query)
             cursor.execute(movie_insert_query)
+            index += 1
         db.get_connection().commit()
+        end_time = time.time()
+        print("Total time taken: {} mins".format(round((end_time - start_time)/60, 2)))
 
     if load_type == RATING:
         ratings_list = gather_data_processed(data_type=load_type, file_path=file_path)
@@ -131,8 +158,8 @@ def load_data_to_db(load_type=None, file_path=None):
         for rating in ratings_list:
             rating_data = [int(rating[0]), str(rating[1]), str(rating[2]), str(rating[3])]
             rating_insert_query = """INSERT INTO user_ratings (user_id, movie_id, rating, rating_source, timestamp)
-                                           VALUES
-                                           ({}, {}, {}, "{}", "{}") """.format(rating_data[0], rating_data[1], rating_data[2], RATING_SOURCE, rating_data[3])
+                                    VALUES({}, {}, {}, "{}", "{}") """.format(rating_data[0], rating_data[1],
+                                                                        rating_data[2], RATING_SOURCE, rating_data[3])
             cursor.execute(rating_insert_query)
         db.get_connection().commit()
 
@@ -148,11 +175,9 @@ def load_data_to_db(load_type=None, file_path=None):
         initial_setup = False
         for user in users_list:
             user_insert_query = """INSERT INTO users (user_id, first_name, last_name, username, email, password_hash, 
-                                        preferred_genres, initial_setup)
-                                        VALUES
-                                        ({}, "{}", "{}", "{}", "{}", "{}", {}, {}) """.format(user, first_name.format(index), last_name,
-                                                                                        username.format(index), email.format(index),
-                                                                                        password_hash, preferred_genres, initial_setup)
+                                    preferred_genres, initial_setup) VALUES({}, "{}", "{}", "{}", "{}", "{}", {}, 
+                                    {}) """.format(user, first_name.format(index), last_name, username.format(index),
+                                    email.format(index), password_hash, preferred_genres, initial_setup)
 
             cursor.execute(user_insert_query)
             index += 1

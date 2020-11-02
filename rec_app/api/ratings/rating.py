@@ -12,7 +12,7 @@ from rec_app.database.models.user_ratings_model import UserRatingsModel
 log = logging.getLogger(__name__)
 ns = api.namespace('rating', description='Operations related to Movie Ratings')
 
-RATING_SOURCE = "WEB"
+RATING_SOURCE_USER = "USER"
 
 
 @ns.route("/<movie_id>")
@@ -45,10 +45,9 @@ class Rating(Resource):
             request_data = request.get_json()
             user_id = current_user['user_id']
             rating = request_data["rating"]
-            print(user_id)
-            print(rating)
+            print('USER_ID:',user_id,',','RATING:',rating)
             try:
-                UserRatingsModel.add_rating(user_id, movie_id, rating, RATING_SOURCE)
+                UserRatingsModel.add_rating(user_id, movie_id, rating, RATING_SOURCE_USER)
                 UserRatingsModel.query.filter_by(user_id=user_id, rating_source=RecEnum.RTNG_SRC_DUMMY).delete()
                 return {"message": "Rated Successfully"}
             except Exception as E:
