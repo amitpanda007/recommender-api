@@ -28,15 +28,13 @@ def extract_movie_url_genre(movie_name, _movie=None):
     return ["",[""]]
 
 
-def extract_movie_image_url(movie_name, _movie=None):
+def extract_movie_image_url(_movie_id):
     print("Movie image not found in DB. Searching IMDB for image reference.")
-    if _movie is None:
-        movie = movie_response(movie_name)
+    movie = get_movie_obj(_movie_id)
     if movie is not None:
-        movie_obj = ia.get_movie(movie.movieID)
         try:
-            if movie_obj.has_key('cover url'):
-                return movie_obj.get('cover url')
+            if movie.has_key('cover url'):
+                return movie.get('cover url')
         except Exception as E:
             print(E)
             traceback.print_stack()
@@ -44,17 +42,15 @@ def extract_movie_image_url(movie_name, _movie=None):
     return ""
 
 
-def extract_movie_story_line(movie_name, _movie=None):
+def extract_movie_story_line(_movie_id):
     print("Story of Movie not found in DB. Searching IMDB for story information.")
-    if _movie is None:
-        movie = movie_response(movie_name)
+    movie = get_movie_obj(_movie_id)
     if movie is not None:
-        movie_obj = ia.get_movie(movie.movieID)
         try:
-            if movie_obj.has_key('plot outline'):
-                return movie_obj.get('plot outline')
-            elif movie_obj.has_key('plot'):
-                return movie_obj.get('plot')
+            if movie.has_key('plot outline'):
+                return movie.get('plot outline')
+            elif movie.has_key('plot'):
+                return movie.get('plot')
         except KeyError:
             # traceback.print_stack()
             return ""
@@ -120,5 +116,5 @@ def extract_movie_info(movie_obj, search_name):
 if __name__ == "__main__":
     pass
     # print(extract_movie_url_genre("Nosferatu a Venezia (1986)"))
-    print(extract_movie_image_url("Joker (2019)"))
+    print(extract_movie_image_url("1"))
     # print(extract_movie_story_line("Right Stuff, The (1983)"))

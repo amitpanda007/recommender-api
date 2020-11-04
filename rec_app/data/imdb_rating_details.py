@@ -6,7 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 import re
 
-from rec_app.data.ratings_data_upload import get_cursor
+from rec_app.data.db_data_upload import get_cursor
 from rec_app.database.db_connector import run_query, FetchType
 
 

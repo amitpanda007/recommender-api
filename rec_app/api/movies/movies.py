@@ -19,12 +19,19 @@ class Movies(Resource):
     def get(self):
         movie_seq_from = request.args.get("from")
         movie_seq_to = request.args.get("to")
+
         if movie_seq_from and movie_seq_to:
             proc_args = movie_seq_from, movie_seq_to
         else:
-            proc_args = 1, 20
+            proc_args = 1, 25
+        all_movies = run_procedure("getMoviesSortedByYear", proc_args, FetchType.FETCH_ALL)
 
-        all_movies = run_procedure("getAllMovies", proc_args, FetchType.FETCH_ALL)
+        # offset = int(movie_seq_from) - 1
+        # limit = (int(movie_seq_to) - int(movie_seq_from)) + 1
+        # movie_query = """SELECT DISTINCT movie_title,movie_id,release_year FROM movies ORDER BY
+        #                 release_year DESC LIMIT {offset},{limit}""".format(offset=offset, limit=limit)
+        # all_movies = run_query(movie_query, fetch_type=FetchType.FETCH_ALL)
+
         final_list = []
         for movies in all_movies:
             movie_dict = {"movieName": movies[0], "movieId": movies[1]}
