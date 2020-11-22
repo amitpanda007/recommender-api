@@ -78,4 +78,4 @@ def recommend_top_5(source_movie: str):
     recommended_movies = svd_recommend(source_movie)
     return recommended_movies[:5]
 
-# print(recommend_top_5('Heavyweights (1994)'))
+print(recommend_top_5('Carmencita'))

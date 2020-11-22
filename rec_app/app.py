@@ -11,6 +11,7 @@ from rec_app.api.movies.movies import ns as movies_namespace
 from rec_app.api.movies.movie import ns as movie_namespace
 from rec_app.api.users.user import ns as user_namespace
 from rec_app.api.ratings.rating import ns as rating_namespace
+from rec_app.api.ratings.imdb_ratings import ns as imdb_rating_namespace
 from rec_app.api.restplus import api
 from rec_app.task_queue.celery_config import celery, init_celery
 from rec_app.database import db, init_database, reset_database
@@ -64,6 +65,7 @@ def initialize_app(flask_app):
     api.add_namespace(movies_namespace)
     api.add_namespace(movie_namespace)
     api.add_namespace(rating_namespace)
+    api.add_namespace(imdb_rating_namespace)
     flask_app.register_blueprint(blueprint)
 
     init_celery(celery, flask_app)

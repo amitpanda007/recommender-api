@@ -1,5 +1,8 @@
 import csv
-from datetime import datetime
+import threading
+import time
+from concurrent.futures.thread import ThreadPoolExecutor
+from datetime import datetime, date
 from random import random
 
 import requests
@@ -31,33 +34,51 @@ def gather_movie_ratings(mov_id):
         return rating_lst
 
 
-def write_rating_to_csv():
+def gather_movies_from_db():
     db, cursor = get_cursor()
     movies_count_query = """SELECT MAX(ID) FROM movies"""
     movies_count = run_query(movies_count_query, FetchType.FETCH_ONE)
 
-    for idx in range(13995, movies_count):
-        movies_info_query = """SELECT imdb_url FROM movies WHERE movie_id={}""".format(idx)
-        try:
-            movies_info = run_query(movies_info_query, FetchType.FETCH_ONE)
-        except:
-            continue
+    with open('movie_info.csv', 'a+', newline='') as file:
+        for idx in range(1, movies_count):
+            movies_info_query = """SELECT imdb_url FROM movies WHERE movie_id={}""".format(idx)
+            try:
+                movies_info = run_query(movies_info_query, FetchType.FETCH_ONE)
+                m = re.search('title/(.+?)/', movies_info)
+                if m:
+                    imdb_url_id = m.group(1)
+                info = "{},{}".format(idx,imdb_url_id)
+                file.writelines(info)
+            except:
+                continue
+    db.close_db()
 
-        m = re.search('title/(.+?)/', movies_info)
-        if m:
-            imdb_url_id = m.group(1)
 
+def write_rating_to_csv(movie_id):
+    imdb_base_id = "tt00000000"
+    imdb_url_id = imdb_base_id[:-len(str(movie_id))] + str(movie_id)
+
+    try:
         ratings_info = gather_movie_ratings(imdb_url_id)
         if ratings_info is not None:
-            rating_value = [imdb_url_id, idx]
+            rating_value = [imdb_url_id, movie_id]
             for rating in ratings_info:
                 rating_value.append(rating[1])
-            with open("ratings_vote_list_count.csv", 'a+', newline='') as file:
+            with open("ratings_votes_{}.csv".format(threading.current_thread().getName().split("_")[1]), 'a+', newline='') as file:
                 # header = ["imdb_url_id", "movie_id", "ten_star", "nine_star", "eight_star", "seven_star", "six_star",
                 #           "five_star", "four_star", "three_star", "two_star", "one_star"]
                 wr = csv.writer(file, quoting=csv.QUOTE_ALL)
                 # wr.writerow(header)
                 wr.writerow(rating_value)
+
+            with open("rating_index.txt", 'w+') as fi:
+                fi.write(str(movie_id))
+                fi.close()
+
+    except Exception as e:
+        with open("rating_index.txt", 'w+') as fi:
+            fi.write(str(movie_id))
+            fi.close()
 
 
 def write_data_to_db():
@@ -81,10 +102,25 @@ def write_data_to_db():
 
 
 if __name__ == "__main__":
+    MAX_NUMBER = 13399850
+    # tt13399850
     # ID = 'tt1825683' full rating
     # ID = 'tt0000217' no rating info
     # ID = 'tt0000219' zero rating for some
 
     # print(gather_movie_ratings('tt1825683'))
-    write_rating_to_csv()
-    # write_data_to_db()
+    with open('rating_index.txt', 'r') as f:
+        imdb_cur_idx = int(f.readlines()[0])
+        f.close()
+
+    run_list = [x for x in range(imdb_cur_idx, MAX_NUMBER, 100000)]
+    for index, run in enumerate(run_list):
+        try:
+            if index + 1 < len(run_list):
+                with ThreadPoolExecutor(max_workers=2) as executor:
+                    executor.map(write_rating_to_csv, range(run_list[index], run_list[index + 1]))
+        except:
+            with open("ERROR_DUMP_{}.txt".format(date.today()), 'a') as file:
+                file.writelines(str(run))
+                file.writelines(",")
+

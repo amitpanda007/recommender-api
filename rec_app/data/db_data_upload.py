@@ -10,6 +10,7 @@ from rec_app.common.imdb_service import extract_movie_url_genre
 MOVIE = "movie"
 RATING = "rating"
 USER = "user"
+IMDB_RATING = "imdb_rating"
 RATING_SOURCE = "IMPORT"
 
 
@@ -19,11 +20,11 @@ def format_unix_time(time):
 
 def gather_data_from_csv():
     rating_columns = ['user_id', 'movie_id', 'rating', 'timestamp']
-    rating_frame = pd.read_csv("u.data", sep='\t', names=rating_columns)
+    rating_frame = pd.read_csv("movies_data/u.data", sep='\t', names=rating_columns)
     movie_columns = ['movie_id', 'movie_title', 'release_date', 'video release date', 'IMDb URL', 'unknown', 'Action',
                      'Adventure', 'Animation', 'Childrens', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Fantasy',
                      'Film-Noir', 'Horror', 'Musical', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western']
-    movies_frame = pd.read_csv("u.item", sep='|', names=movie_columns, encoding='latin-1')
+    movies_frame = pd.read_csv("movies_data/u.item", sep='|', names=movie_columns, encoding='latin-1')
     movie_names = movies_frame[['movie_id', 'movie_title']]
     all_movie_rating_df = pd.merge(rating_frame, movie_names, on='movie_id')
     all_movies_df = all_movie_rating_df.drop_duplicates(subset="movie_id")
@@ -58,14 +59,14 @@ def gather_data_from_csv():
 
 def load_data_to_csv():
     ratings_list, movies_list = gather_data_from_csv()
-    with open("ratings_list_processed.csv", 'w', newline='') as file:
+    with open("movies_data/ratings_list_processed.csv", 'w', newline='') as file:
         header = ["user_id", "movie_id", "rating", "timestamp"]
         wr = csv.writer(file, quoting=csv.QUOTE_ALL)
         wr.writerow(header)
         for rating in ratings_list:
             wr.writerow(rating)
 
-    with open("movies_list_processed.csv", 'w', newline='') as file:
+    with open("movies_data/movies_list_processed.csv", 'w', newline='') as file:
         header = ["movie_id", "movie_title", "imdb_url", "genre", "timestamp"]
         wr = csv.writer(file, quoting=csv.QUOTE_ALL)
         wr.writerow(header)
@@ -88,6 +89,14 @@ def gather_data_processed(data_type=None, file_path=None):
         path = "ratings_list_processed.csv" if file_path is None else file_path
         with open(path, newline='', encoding='utf-8') as f2:
             rating_reader = csv.reader(f2, delimiter=',')
+            for row in rating_reader:
+                ratings_list.append(row)
+        return ratings_list[1:]
+
+    elif data_type == IMDB_RATING:
+        path = "ratings_list_processed.csv" if file_path is None else file_path
+        with open(path, newline='', encoding='utf-8') as f3:
+            rating_reader = csv.reader(f3, delimiter=',')
             for row in rating_reader:
                 ratings_list.append(row)
         return ratings_list[1:]
@@ -163,6 +172,26 @@ def load_data_to_db(load_type=None, file_path=None):
             cursor.execute(rating_insert_query)
         db.get_connection().commit()
 
+    if load_type == IMDB_RATING:
+        index = 1
+        start_time = time.time()
+        imdb_ratings_list = gather_data_processed(data_type=load_type, file_path=file_path)
+        timestamp = datetime.datetime.utcnow()
+        for rating in imdb_ratings_list:
+            print("Current running Index: {}".format(index))
+            rating_insert_query = """INSERT INTO imdb_user_ratings (imdb_url_id, imdb_movie_id, ten_rtn_cnt, 
+                                nine_rtn_cnt, eight_rtn_cnt, seven_rtn_cnt, six_rtn_cnt, five_rtn_cnt , four_rtn_cnt,
+                                three_rtn_cnt, two_rtn_cnt, one_rtn_cnt, rating_source, timestamp)
+                                VALUES("{}", {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, "{}", "{}") """.format(
+                                rating[0], int(rating[1]), int(rating[2]), int(rating[3]), int(rating[4]),
+                                int(rating[5]), int(rating[6]), int(rating[7]), int(rating[8]), int(rating[9]),
+                                int(rating[10]), int(rating[11]), RATING_SOURCE, timestamp)
+            cursor.execute(rating_insert_query)
+            index += 1
+        db.get_connection().commit()
+        end_time = time.time()
+        print("Total time taken: {} mins".format(round((end_time - start_time) / 60, 2)))
+
     if load_type == USER:
         users_list = load_user_from_db()
         index = 0
@@ -193,7 +222,9 @@ def get_cursor():
 
 
 if __name__ == "__main__":
-    load_data_to_db(load_type=MOVIE, file_path="F:\\CODING\\PYTHON\\IMDB_Data_Load\\dump\\processed_movie.csv")
+    # load_data_to_db(load_type=MOVIE, file_path="F:\\CODING\\PYTHON\\IMDB_Data_Load\\dump\\movies\\processed_movie.csv")
+    load_data_to_db(load_type=IMDB_RATING,
+                    file_path="F:\\CODING\\PYTHON\\IMDB_Data_Load\\dump\\ratings\\processed_ratings_final.csv")
     # load_data_to_csv()
     # gather_data_processed()
     pass
