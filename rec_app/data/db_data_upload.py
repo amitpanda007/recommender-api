@@ -223,8 +223,8 @@ def get_cursor():
 
 if __name__ == "__main__":
     # load_data_to_db(load_type=MOVIE, file_path="F:\\CODING\\PYTHON\\IMDB_Data_Load\\dump\\movies\\processed_movie.csv")
-    load_data_to_db(load_type=IMDB_RATING,
-                    file_path="F:\\CODING\\PYTHON\\IMDB_Data_Load\\dump\\ratings\\processed_ratings_final.csv")
+    # load_data_to_db(load_type=IMDB_RATING,
+    #                 file_path="F:\\CODING\\PYTHON\\IMDB_Data_Load\\dump\\ratings\\processed_ratings_final.csv")
     # load_data_to_csv()
     # gather_data_processed()
     pass

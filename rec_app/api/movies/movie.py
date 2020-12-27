@@ -16,7 +16,7 @@ ns = api.namespace('movie', description='Operations related to getting all movie
 
 
 @ns.route("/<movie_id>")
-class Movies(Resource):
+class Movie(Resource):
     """
     # Returns genre, imdb_url, storyline, image, average_rating
     """
@@ -27,19 +27,19 @@ class Movies(Resource):
         # movie_info = run_procedure("getMovieInfo", prc_args, "fetch_one")
         movie_info = MoviesModel.query.filter_by(movie_id=movie_id).first()
 
-        movie_name = movie_info.movie_title
-        genre = movie_info.genre
-        imdb_url = movie_info.imdb_url
+        movie_name = movie_info.movie_title.strip()
+        genre = movie_info.genre.strip()
+        imdb_url = movie_info.imdb_url.strip()
         release_year = movie_info.release_year
-        cover_image = movie_info.cover_image
+        cover_image = movie_info.cover_image.strip()
         imdb_votes = movie_info.imdb_votes
         imdb_rating = movie_info.imdb_rating
         user_rating = movie_info.user_rating
-        story_line = movie_info.story_line
+        story_line = movie_info.story_line.strip()
 
-        if cover_image is None:
+        if cover_image is None or cover_image is "":
             # Call IMDB API to get the cover image
-            cover_image = extract_movie_image_url(movie_info.movie_title)
+            cover_image = extract_movie_image_url(movie_info.movie_id)
             # Update database with the gathered data
             try:
                 movie_info.cover_image = cover_image
@@ -47,9 +47,9 @@ class Movies(Resource):
             except:
                 traceback.print_stack()
                 return {"message": "Something went wrong"}, 500
-        if story_line is None:
+        if story_line is None or story_line is "":
             # Call IMDB API to get the story line of the movie
-            story_line = extract_movie_story_line(movie_info.movie_title)
+            story_line = extract_movie_story_line(movie_info.movie_id)
             story_line = (story_line[:997] + '..') if len(story_line) > 999 else story_line
             # Update database with the gathered data
             try:
